@@ -28,7 +28,7 @@ export function makeReading(spec: ReadingSpec): Reading {
   for (const [kind, w] of Object.entries(spec.windows) as [WindowKind, WindowSpec][]) {
     const len = WINDOW_SECONDS[kind];
     const elapsed = w.elapsed ?? 0.5;
-    const resetsAt = w.resetsAt !== undefined ? w.resetsAt : Math.round(spec.now + (1 - elapsed) * len);
+    const resetsAt = w.resetsAt !== undefined ? w.resetsAt : spec.now + (1 - elapsed) * len;
     windows[kind] = {
       kind,
       usedPct: w.usedPct,
@@ -40,7 +40,7 @@ export function makeReading(spec: ReadingSpec): Reading {
   const scoped: ScopedLimit[] = (spec.scoped ?? []).map((s) => ({
     model: s.model,
     usedPct: s.usedPct,
-    resetsAt: s.resetsAt !== undefined ? s.resetsAt : Math.round(spec.now + 3 * 86400),
+    resetsAt: s.resetsAt !== undefined ? s.resetsAt : spec.now + 3 * 86400,
     active: true,
   }));
   return {

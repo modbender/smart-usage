@@ -1,0 +1,14 @@
+{
+  "account": { "uuid": "00000000-0000-0000-0000-000000000000", "email": "user@example.com", "has_claude_max": true, "has_claude_pro": false },
+  "organization": {
+    "uuid": "00000000-0000-0000-0000-000000000001",
+    "organization_type": "claude_max",
+    "billing_type": "stripe_subscription",
+    "rate_limit_tier": "default_claude_max_20x",
+    "seat_tier": null,
+    "subscription_status": "active",
+    "plan_display_name": "Ultra",
+    "plan_display_label": "Ultra plan"
+  },
+  "application": { "slug": "claude-code" }
+}

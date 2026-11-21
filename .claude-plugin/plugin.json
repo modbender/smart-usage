@@ -1,0 +1,49 @@
+{
+  "name": "smart-usage",
+  "version": "0.1.0",
+  "description": "Paces subagents and workflows against your plan's usage limits: reads your usage from Anthropic, caps how many subagents run at once as a window fills, and blocks new ones when it is nearly spent.",
+  "author": {
+    "name": "modbender"
+  },
+  "homepage": "https://github.com/modbender/smart-usage",
+  "repository": "https://github.com/modbender/smart-usage",
+  "license": "MIT",
+  "keywords": [
+    "usage",
+    "rate-limits",
+    "subagents",
+    "hooks",
+    "pacing"
+  ],
+  "network": {
+    "hosts": [
+      "api.anthropic.com"
+    ]
+  },
+  "userConfig": {
+    "plan": {
+      "type": "string",
+      "title": "Plan",
+      "description": "auto (or empty) detects your plan from your account. Otherwise one of: pro, max5, max20, ultra, team, enterprise."
+    },
+    "normal_cap": {
+      "type": "number",
+      "title": "Normal subagent cap",
+      "description": "Subagents allowed in flight when nothing is constrained. Empty means 3.",
+      "min": 1,
+      "max": 20
+    },
+    "refresh_seconds": {
+      "type": "number",
+      "title": "Refresh interval (seconds)",
+      "description": "At most one usage fetch per this many seconds, shared by all sessions. Empty means 300; minimum 60.",
+      "min": 60,
+      "max": 3600
+    },
+    "debug": {
+      "type": "boolean",
+      "title": "Debug log",
+      "description": "Write a debug log to smart-usage/debug.log in your Claude config directory."
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "five_hour": null,
+  "seven_day": {
+    "utilization": 11,
+    "resets_at": "2026-11-25T01:00:00.490948+00:00",
+    "limit_dollars": null,
+    "used_dollars": null,
+    "remaining_dollars": null,
+    "locked_reason": null
+  },
+  "seven_day_oauth_apps": null,
+  "seven_day_opus": null,
+  "seven_day_sonnet": null,
+  "pace": null,
+  "indicator": null,
+  "extra_usage": { "is_enabled": false, "user_disabled": true, "spend_limit_reached": false },
+  "limits": [
+    {
+      "kind": "weekly_all",
+      "group": "weekly",
+      "percent": 11,
+      "severity": "normal",
+      "resets_at": "2026-11-25T01:00:00.490948+00:00",
+      "scope": null,
+      "is_active": true
+    },
+    {
+      "kind": "weekly_scoped",
+      "group": "weekly",
+      "percent": 3,
+      "severity": "normal",
+      "resets_at": "2026-11-25T01:00:00.491162+00:00",
+      "scope": { "model": { "id": null, "display_name": "Fable" }, "surface": null },
+      "is_active": false
+    }
+  ],
+  "seven_day_breakdown": {
+    "as_of": "2026-11-21T10:26:36.507170+00:00",
+    "window_started_at": "2026-11-18T01:00:00.490948+00:00",
+    "rows": [
+      { "key": "claude_code", "display_name": "Claude Code", "percent": 100, "percent_of_limit": 11 },
+      { "key": "chat", "display_name": "Chats", "percent": 0, "percent_of_limit": 0 }
+    ]
+  },
+  "weekly_scoped_shares": [{ "limit_index": 1, "used_percent_of_weekly": 2, "allowance_percent_of_weekly": 50 }]
+}

@@ -1,0 +1,5 @@
+node_modules/
+# Personal working material, never published
+reference/
+CONTEXT.md
+*.log

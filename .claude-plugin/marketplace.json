@@ -1,0 +1,12 @@
+{
+  "name": "smart-usage",
+  "description": "smart-usage: a Claude Code plugin that paces subagents against your plan's usage limits.",
+  "owner": { "name": "modbender" },
+  "plugins": [
+    {
+      "name": "smart-usage",
+      "source": "./",
+      "description": "Paces subagents and workflows against your plan's usage limits."
+    }
+  ]
+}

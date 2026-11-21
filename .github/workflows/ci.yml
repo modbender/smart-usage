@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        # The bundles run under the user's node; 18 and 20 are end of life (package.json engines).
+        node: [22, 24]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: bun install --frozen-lockfile
+      - run: bun run typecheck
+      - run: bun test
+      - run: bun run build
+      - name: dist/ matches a fresh build
+        run: |
+          git diff --exit-code dist
+          changes="$(git status --porcelain dist)"
+          if [ -n "$changes" ]; then
+            echo "dist/ has files a fresh build adds or removes:"
+            echo "$changes"
+            exit 1
+          fi

@@ -205,6 +205,7 @@ describe("prompt hook", () => {
     const warned = context(prompt());
     expect(warned).toContain("on pace for 105% by reset");
     expect(warned).toContain("Subagent cap: normal");
+    expect(warned).not.toContain("Nothing is constrained");
     setReading({ plan: "max20", windows: { five_hour: { usedPct: 10, elapsed: 0.5 } } });
     const retracted = context(prompt());
     expect(retracted).toContain("Nothing is constrained.");

@@ -150,17 +150,25 @@ used)`; with no reported windows it is `normalCap`. Everything that talks about 
 warning; "back to normal" means back to the baseline. A baseline below `normalCap` is stated
 once per conversation (see section 4), not on every prompt.
 
-**Pace tiers** (`config.pace`), because a level alone misses a fast burn early in a window:
+**Pace** (`config.pace`), because a level alone misses a fast burn early in a window:
 
     elapsed   = (now - startedAt) / windowLength          (0..1)
     projected = usedPct / elapsed                         (end-of-window % at the current rate)
 
 Counted only once `elapsed >= minElapsed` and `usedPct >= minUsedPct` (early readings are
-noise). five_hour: projected ≥ 200 → cap 1, ≥ 130 → cap 2. seven_day: ≥ 150 → cap 1,
-≥ 110 → cap 2. Pace is plan-independent: it is a ratio, and running out is running out.
+noise): five_hour 20% elapsed and 20% used, seven_day one day and 25% used. Pace is
+plan-independent: it is a ratio, and running out is running out.
 
-Window cap = min(level cap, pace cap). The override file, while live, replaces the computed
-cap (up or down).
+By default pace only warns. A projection at or over `warnProjectedPct` is a pace warning: it
+counts as pressure, triggers model steering and is named in the line, but sets no cap.
+`pace.rows` is empty by default because a pace cap throttles a legitimate burst (ten agents
+on ten features early in the week), and the level tiers already bound the cap as the limit
+nears. The original hook treated weekly pace the same way. A user opts in to pace caps with
+rows in `config.json`, highest projection first, e.g. five_hour ≥ 200 → cap 1, ≥ 130 → cap 2;
+seven_day ≥ 150 → cap 1, ≥ 110 → cap 2.
+
+Window cap = level cap, or min(level cap, pace cap) when rows are configured. The override
+file, while live, replaces the computed cap (up or down).
 
 **Reading age.** A reading older than `staleSeconds` is a floor: within one window usage only
 rises until `resetsAt`, so an old figure is a lower bound and its cap is still valid, or too

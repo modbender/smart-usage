@@ -1,6 +1,6 @@
 {
   "name": "smart-usage",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Paces subagents and workflows against your plan's usage limits: reads your usage from Anthropic, caps how many subagents run at once as a window fills, and blocks new ones when it is nearly spent.",
   "author": {
     "name": "modbender"

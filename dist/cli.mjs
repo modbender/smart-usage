@@ -164,18 +164,9 @@ var init_config = __esm(() => {
     },
     pace: {
       enabled: true,
-      rows: {
-        five_hour: [
-          { projected: 200, cap: 1 },
-          { projected: 130, cap: 2 }
-        ],
-        seven_day: [
-          { projected: 150, cap: 1 },
-          { projected: 110, cap: 2 }
-        ]
-      },
+      rows: { five_hour: [], seven_day: [] },
       minElapsed: { five_hour: 0.2, seven_day: 1 / 7 },
-      minUsedPct: { five_hour: 20, seven_day: 15 }
+      minUsedPct: { five_hour: 20, seven_day: 25 }
     },
     warnProjectedPct: 100,
     modelSteering: { enabled: true, scopedWarnPct: 75, scopedAvoidPct: 90 },

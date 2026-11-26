@@ -38,6 +38,7 @@ export interface Config {
   tiers: Record<WindowKind, TierRow[]>;
   pace: {
     enabled: boolean;
+    /** Empty by default: pace warns but sets no cap. */
     rows: Record<WindowKind, PaceRow[]>;
     /** Fraction of the window that must have elapsed before pace counts. */
     minElapsed: Record<WindowKind, number>;
@@ -93,18 +94,11 @@ export const DEFAULTS: Config = {
   },
   pace: {
     enabled: true,
-    rows: {
-      five_hour: [
-        { projected: 200, cap: 1 },
-        { projected: 130, cap: 2 },
-      ],
-      seven_day: [
-        { projected: 150, cap: 1 },
-        { projected: 110, cap: 2 },
-      ],
-    },
+    // Pace only warns by default: a cap would throttle a legitimate early burst. Rows in
+    // config.json opt in to pace caps.
+    rows: { five_hour: [], seven_day: [] },
     minElapsed: { five_hour: 0.2, seven_day: 1 / 7 },
-    minUsedPct: { five_hour: 20, seven_day: 15 },
+    minUsedPct: { five_hour: 20, seven_day: 25 },
   },
   warnProjectedPct: 100,
   modelSteering: { enabled: true, scopedWarnPct: 75, scopedAvoidPct: 90 },

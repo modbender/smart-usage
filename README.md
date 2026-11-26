@@ -55,12 +55,22 @@ The overall cap is the lowest cap across the reported windows.
 
 ### Pace
 
-A level check misses a fast burn early in a window, so smart-usage also projects where each window will end at the current rate (`percent used / fraction of window elapsed`):
+A level check misses a fast burn early in a window, so smart-usage also projects where each window will end at the current rate (`percent used / fraction of window elapsed`). When a window is projected to reach 100% or more before it resets, the line warns that it will run out early and advises smaller models for subagents. Pace doesn't lower the cap by default. Ten agents working through ten features early in the week is a burst you usually want, and the level tiers still cut in as the limit gets close.
 
-- 5-hour: projected 130% or more gives cap 2; 200% or more gives cap 1.
-- Weekly: projected 110% or more gives cap 2; 150% or more gives cap 1.
+Pace only counts once 20% of the 5-hour window has passed and 20% is used, or one day of the weekly window has passed and 25% is used. Earlier readings are too noisy. Pace is the same on every plan.
 
-Pace only counts once 20% of the 5-hour window has passed and 20% is used, or one day of the weekly window has passed and 15% is used. Earlier readings are too noisy. Pace is the same on every plan. A window's cap is the lower of its level cap and its pace cap. Any window projected at 100% or more also triggers the advice to use smaller models.
+If you want pace to cap subagents as well, add `pace.rows` to `config.json`. Each row maps a projected percentage to a cap, highest projection first, and a window's cap becomes the lower of its level cap and its pace cap:
+
+```json
+{
+  "pace": {
+    "rows": {
+      "five_hour": [{ "projected": 200, "cap": 1 }, { "projected": 130, "cap": 2 }],
+      "seven_day": [{ "projected": 150, "cap": 1 }, { "projected": 110, "cap": 2 }]
+    }
+  }
+}
+```
 
 ### Old readings
 
@@ -70,7 +80,7 @@ If the cache can't be refreshed (backoff, no network), smart-usage keeps using t
 
 | Hook | What it does |
 |---|---|
-| SessionStart | One briefing line when a cap is in force, or when the plan's baseline is below the normal cap (Pro). After `/clear` or compaction it forgets what this conversation was told, since that line is gone. |
+| SessionStart | One briefing line when a cap is in force, a window is on pace to run out, a per-model limit is close, or when the plan's baseline is below the normal cap (Pro). After `/clear` or compaction it forgets what this conversation was told, since that line is gone. |
 | UserPromptSubmit | A line while there is pressure, or when the cap changed since this conversation was last told. When the pressure lifts, one line says so, then silence. |
 | PreToolUse on `Agent` and `Workflow` | Re-reads usage on every launch, because an autonomous run can go hours without a prompt. At cap 0 it denies the launch and gives the line as the reason. Below the baseline it adds the line as context. When the cap differs from the one this conversation was last told, including a raise, it says so once. A launch that asks for a model past its per-model limit gets a note. Otherwise it stays silent. |
 
@@ -115,7 +125,7 @@ Sample `status` output, with the plan set to `max5`:
 Plan: Max 5x (max5, from config)
 Reading: fresh, 31s old
 Windows:
-  5-hour: 88% used, headroom 12 (x1), elapsed 60%, projected 147%, level cap 1, pace cap 2, resets in 2h 0m -> cap 1
+  5-hour: 88% used, headroom 12 (x1), elapsed 60%, projected 147%, level cap 1, pace cap none, resets in 2h 0m -> cap 1
   weekly: 41% used, headroom 59 (x1), elapsed 45%, projected 91%, level cap none, pace cap none, resets in 3d 20h -> cap 3
 Cap: 1 of 3 (binding: five_hour)
 Plan baseline: 3
@@ -187,7 +197,7 @@ All keys and their defaults are in [`src/config.ts`](src/config.ts) (`DEFAULTS`)
 | `profileRefreshSeconds` | 86400 | How often the plan is re-checked |
 | `multipliers` | see Plans | Per plan and window, relative to Max 5x |
 | `tiers` | see Cut-offs | Headroom rows per window, cap 0 first |
-| `pace` | see Pace | `enabled`, `rows`, `minElapsed`, `minUsedPct` per window |
+| `pace` | see Pace | `enabled`, `rows` (empty, so pace only warns), `minElapsed`, `minUsedPct` per window |
 | `warnProjectedPct` | 100 | Projected end-of-window percent that triggers a pace warning |
 | `modelSteering` | on, 75, 90 | `enabled`, `scopedWarnPct`, `scopedAvoidPct` for per-model weekly limits |
 | `capNotes` | `{}` | Extra text per cap, keyed `"0"`, `"1"`, ... |

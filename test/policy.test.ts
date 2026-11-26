@@ -104,22 +104,46 @@ describe("pace tiers", () => {
   const pace = (kind: WindowKind, usedPct: number, elapsed: number, config: Config = DEFAULTS) =>
     run({ plan: "max20", windows: { [kind]: { usedPct, elapsed } } }, config).windows[0]!;
 
-  test("five_hour: projected >= 200 -> cap 1, >= 130 -> cap 2", () => {
-    expect(pace("five_hour", 45, 0.2)).toMatchObject({ projected: 225, paceCap: 1, cap: 1, levelCap: null });
-    expect(pace("five_hour", 30, 0.2)).toMatchObject({ projected: 150, paceCap: 2, cap: 2 });
-    expect(pace("five_hour", 40, 0.2)).toMatchObject({ projected: 200, paceCap: 1 });
-    expect(pace("five_hour", 26, 0.2)).toMatchObject({ projected: 130, paceCap: 2 });
-    expect(pace("five_hour", 25, 0.2)).toMatchObject({ projected: 125, paceCap: null, cap: NORMAL });
+  // Pace caps are opt-in through config.json rows.
+  const withRows = configWith((c) => {
+    c.pace.rows = {
+      five_hour: [
+        { projected: 200, cap: 1 },
+        { projected: 130, cap: 2 },
+      ],
+      seven_day: [
+        { projected: 150, cap: 1 },
+        { projected: 110, cap: 2 },
+      ],
+    };
   });
 
-  test("seven_day: projected >= 150 -> cap 1, >= 110 -> cap 2", () => {
-    expect(pace("seven_day", 40, 0.25)).toMatchObject({ projected: 160, paceCap: 1, cap: 1 });
-    expect(pace("seven_day", 30, 0.25)).toMatchObject({ projected: 120, paceCap: 2, cap: 2 });
-    expect(pace("seven_day", 27, 0.25)).toMatchObject({ projected: 108, paceCap: null });
+  test("by default pace sets no cap but still warns and steers", () => {
+    const a = run({ plan: "max20", windows: { five_hour: { usedPct: 45, elapsed: 0.2 } } });
+    expect(a.windows[0]).toMatchObject({ projected: 225, paceCap: null, cap: NORMAL });
+    expect(a.cap).toBe(NORMAL);
+    expect(a.paceWarnings).toEqual(["five_hour"]);
+    expect(a).toMatchObject({ steerSmaller: true, pressure: true });
+    const weekly = run({ plan: "ultra", windows: { seven_day: { usedPct: 59, elapsed: 0.23 } } });
+    expect(weekly).toMatchObject({ cap: NORMAL, paceWarnings: ["seven_day"], steerSmaller: true, pressure: true });
+  });
+
+  test("five_hour rows: projected >= 200 -> cap 1, >= 130 -> cap 2", () => {
+    expect(pace("five_hour", 45, 0.2, withRows)).toMatchObject({ projected: 225, paceCap: 1, cap: 1, levelCap: null });
+    expect(pace("five_hour", 30, 0.2, withRows)).toMatchObject({ projected: 150, paceCap: 2, cap: 2 });
+    expect(pace("five_hour", 40, 0.2, withRows)).toMatchObject({ projected: 200, paceCap: 1 });
+    expect(pace("five_hour", 26, 0.2, withRows)).toMatchObject({ projected: 130, paceCap: 2 });
+    expect(pace("five_hour", 25, 0.2, withRows)).toMatchObject({ projected: 125, paceCap: null, cap: NORMAL });
+  });
+
+  test("seven_day rows: projected >= 150 -> cap 1, >= 110 -> cap 2", () => {
+    expect(pace("seven_day", 40, 0.25, withRows)).toMatchObject({ projected: 160, paceCap: 1, cap: 1 });
+    expect(pace("seven_day", 30, 0.25, withRows)).toMatchObject({ projected: 120, paceCap: 2, cap: 2 });
+    expect(pace("seven_day", 27, 0.25, withRows)).toMatchObject({ projected: 108, paceCap: null });
   });
 
   test("pace does not count before minElapsed", () => {
-    const w = pace("five_hour", 45, 0.15);
+    const w = pace("five_hour", 45, 0.15, withRows);
     expect(w.projected).toBeNull();
     expect(w.paceCap).toBeNull();
     expect(w.cap).toBe(NORMAL);
@@ -129,22 +153,30 @@ describe("pace tiers", () => {
   test("pace does not count below minUsedPct", () => {
     // 19% at 5% elapsed would project 380%, but 19 < minUsedPct 20.
     const cfg = configWith((c) => {
+      c.pace.rows = withRows.pace.rows;
       c.pace.minElapsed.five_hour = 0;
     });
     expect(pace("five_hour", 19, 0.05, cfg).projected).toBeNull();
     expect(pace("five_hour", 20, 0.05, cfg)).toMatchObject({ projected: 400, paceCap: 1 });
   });
 
+  test("seven_day pace counts from 25% used, inclusive", () => {
+    expect(pace("seven_day", 24.9, 0.2).projected).toBeNull();
+    expect(pace("seven_day", 25, 0.2).projected).toBeCloseTo(125);
+    expect(run({ plan: "max20", windows: { seven_day: { usedPct: 25, elapsed: 0.2 } } }).paceWarnings).toEqual(["seven_day"]);
+  });
+
   test("pace off in config sets no cap", () => {
     const cfg = configWith((c) => {
+      c.pace.rows = withRows.pace.rows;
       c.pace.enabled = false;
     });
     expect(pace("five_hour", 45, 0.2, cfg)).toMatchObject({ projected: null, paceCap: null, cap: NORMAL });
   });
 
-  test("window cap is the lower of level and pace", () => {
+  test("with rows, window cap is the lower of level and pace", () => {
     // max5 at 72%: level cap 2; 72 / 0.3 = 240% projected: pace cap 1.
-    const w = run({ plan: "max5", windows: { five_hour: { usedPct: 72, elapsed: 0.3 } } }).windows[0]!;
+    const w = run({ plan: "max5", windows: { five_hour: { usedPct: 72, elapsed: 0.3 } } }, withRows).windows[0]!;
     expect(w).toMatchObject({ levelCap: 2, paceCap: 1, cap: 1 });
   });
 
